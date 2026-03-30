@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RC Lookup — hirav.me</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #111118;
+      --border:   #1e1e2e;
+      --border2:  #2a2a3e;
+      --accent:   #f0b429;
+      --accent2:  #e07b39;
+      --text:     #e8e8f0;
+      --muted:    #6b6b88;
+      --danger:   #e05858;
+      --success:  #4ade80;
+      --card-bg:  #13131c;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(240,180,41,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(224,123,57,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* grid lines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      margin-bottom: 56px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(240,180,41,0.1);
+      border: 1px solid rgba(240,180,41,0.25);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+    h1 span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--muted);
+      font-weight: 300;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    /* ── SEARCH BOX ── */
+    .search-wrap {
+      margin-bottom: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .search-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0.5;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .input-group {
+      flex: 1;
+      position: relative;
+    }
+
+    .input-label {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]::placeholder {
+      color: var(--muted);
+      text-transform: none;
+      font-weight: 300;
+      letter-spacing: 0;
+    }
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(240,180,41,0.1);
+    }
+
+    .btn-lookup {
+      align-self: flex-end;
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 28px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-lookup:hover:not(:disabled) {
+      background: #f5c84a;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(240,180,41,0.3);
+    }
+    .btn-lookup:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    .btn-lookup:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-icon { font-size: 16px; }
+
+    /* spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(10,10,15,0.3);
+      border-top-color: #0a0a0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: block; }
+    .loading .btn-icon { display: none; }
+
+    /* ── ERROR ── */
+    .error-box {
+      display: none;
+      background: rgba(224,88,88,0.08);
+      border: 1px solid rgba(224,88,88,0.3);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--danger);
+      font-family: 'DM Mono', monospace;
+    }
+    .error-box.visible { display: block; }
+
+    /* ── RESULTS ── */
+    #results {
+      display: none;
+      animation: fadeUp 0.4s ease forwards;
+    }
+    #results.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── VEHICLE CARD ── */
+    .vehicle-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+
+    .vehicle-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .reg-number {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+
+    .company-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(224,123,57,0.12);
+      border: 1px solid rgba(224,123,57,0.3);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--accent2);
+      letter-spacing: 0.06em;
+    }
+
+    .vehicle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 0;
+    }
+
+    .info-cell {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+    .info-cell:nth-child(even) { }
+    .info-cell:last-child, .info-cell:nth-last-child(2) { border-bottom: none; }
+
+    .info-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .info-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .info-value.mono {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+    }
+    .info-value.empty { color: var(--muted); font-style: italic; font-size: 12px; }
+
+    /* ── DIRECTORS ── */
+    .directors-section { margin-top: 8px; }
+
+    .director-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 12px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: start;
+      transition: border-color 0.2s;
+    }
+    .director-card:hover { border-color: rgba(240,180,41,0.3); }
+
+    .director-avatar {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(240,180,41,0.15), rgba(224,123,57,0.15));
+      border: 1px solid rgba(240,180,41,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .director-info { min-width: 0; }
+
+    .director-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .director-din {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .director-contacts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .contact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+    }
+    .contact-pill .icon { font-size: 11px; opacity: 0.6; }
+    .contact-pill.na { color: var(--muted); border-color: var(--border); }
+
+    .director-note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── STATUS TAG ── */
+    .status-tag {
+      display: inline-block;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+    .status-tag.active { background: rgba(74,222,128,0.1); color: var(--success); border: 1px solid rgba(74,222,128,0.2); }
+    .status-tag.inactive { background: rgba(224,88,88,0.1); color: var(--danger); border: 1px solid rgba(224,88,88,0.2); }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 580px) {
+      .input-row { flex-direction: column; }
+      .btn-lookup { width: 100%; justify-content: center; }
+      .vehicle-grid { grid-template-columns: 1fr 1fr; }
+      .director-card { grid-template-columns: 1fr; }
+      .director-avatar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <header>
+    <div class="badge">Vehicle Intelligence</div>
+    <h1>RC <span>Lookup</span></h1>
+    <p class="subtitle">Enter any Indian vehicle registration number to fetch full RC details and identify company-registered vehicle directors.</p>
+  </header>
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <div class="input-row">
+      <div class="input-group">
+        <label class="input-label" for="reg-input">Registration Number</label>
+        <input type="text" id="reg-input" placeholder="e.g. MH12AB1234" autocomplete="off" spellcheck="false" />
+      </div>
+      <button class="btn-lookup" id="lookup-btn" onclick="doLookup()">
+        <span class="spinner"></span>
+        <span class="btn-icon">→</span>
+        Lookup
+      </button>
+    </div>
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+
+    <div class="section-title">Vehicle Details</div>
+
+    <div class="vehicle-card" id="vehicle-card">
+      <div class="vehicle-header">
+        <span class="reg-number" id="v-reg"></span>
+        <span class="company-badge" id="company-badge" style="display:none">🏢 Company Vehicle</span>
+      </div>
+      <div class="vehicle-grid" id="vehicle-grid"></div>
+    </div>
+
+    <div class="directors-section" id="directors-section" style="display:none">
+      <div class="section-title">Company Directors</div>
+      <div id="directors-list"></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>rc.hirav.me &nbsp;·&nbsp; Powered by <a href="https://idfy.com" target="_blank">iDfy</a> + MCA21</p>
+  </footer>
+
+</div>
+
+<script>
+  const API_BASE = '';  // same origin via nginx proxy
+
+  const fields = [
+    { key: 'owner_name',            label: 'Owner Name' },
+    { key: 'vehicle_class',         label: 'Vehicle Class' },
+    { key: 'maker_description',     label: 'Make & Model' },
+    { key: 'fuel_type',             label: 'Fuel Type' },
+    { key: 'color',                 label: 'Color' },
+    { key: 'registration_date',     label: 'Reg. Date' },
+    { key: 'registration_validity', label: 'Reg. Valid Till' },
+    { key: 'fitness_upto',          label: 'Fitness Upto' },
+    { key: 'insurance_company',     label: 'Insurer' },
+    { key: 'insurance_validity',    label: 'Insurance Valid' },
+    { key: 'pucc_validity',         label: 'PUCC Valid' },
+    { key: 'financer',              label: 'Financer' },
+    { key: 'state',                 label: 'State' },
+    { key: 'rto_code',              label: 'RTO Code', mono: true },
+    { key: 'chassis_number',        label: 'Chassis No.', mono: true },
+    { key: 'engine_number',         label: 'Engine No.', mono: true },
+  ];
+
+  document.getElementById('reg-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLookup();
+  });
+
+  async function doLookup() {
+    const regNo = document.getElementById('reg-input').value.trim();
+    if (!regNo) return;
+
+    setLoading(true);
+    clearError();
+    hideResults();
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/lookup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration_number: regNo }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        throw new Error(data.detail || `Error ${resp.status}`);
+      }
+
+      renderResults(data);
+
+    } catch (err) {
+      showError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function renderResults(data) {
+    const { vehicle, is_company_vehicle, directors } = data;
+
+    // Reg number
+    document.getElementById('v-reg').textContent = vehicle.registration_number;
+
+    // Company badge
+    const badge = document.getElementById('company-badge');
+    badge.style.display = is_company_vehicle ? 'inline-flex' : 'none';
+
+    // Vehicle grid
+    const grid = document.getElementById('vehicle-grid');
+    grid.innerHTML = '';
+    fields.forEach(f => {
+      const val = vehicle[f.key];
+      const cell = document.createElement('div');
+      cell.className = 'info-cell';
+      cell.innerHTML = `
+        <div class="info-label">${f.label}</div>
+        <div class="info-value ${f.mono ? 'mono' : ''} ${!val ? 'empty' : ''}">${val || '—'}</div>
+      `;
+      grid.appendChild(cell);
+    });
+
+    // Directors
+    const dirSection = document.getElementById('directors-section');
+    const dirList = document.getElementById('directors-list');
+    dirList.innerHTML = '';
+
+    if (is_company_vehicle && directors && directors.length > 0) {
+      dirSection.style.display = 'block';
+      directors.forEach(d => {
+        dirList.appendChild(renderDirectorCard(d));
+      });
+    } else {
+      dirSection.style.display = 'none';
+    }
+
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('results').style.display = 'block';
+  }
+
+  function renderDirectorCard(d) {
+    const initials = (d.name || 'DI').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+    const statusHtml = d.status
+      ? `<span class="status-tag ${d.status.toLowerCase().includes('active') ? 'active' : 'inactive'}">${d.status}</span>`
+      : '';
+
+    const emailHtml = d.email
+      ? `<span class="contact-pill">✉ ${d.email}</span>`
+      : `<span class="contact-pill na">✉ Email N/A</span>`;
+
+    const phoneHtml = d.phone
+      ? `<span class="contact-pill">📞 ${d.phone}</span>`
+      : `<span class="contact-pill na">📞 Phone N/A</span>`;
+
+    const addrHtml = d.address
+      ? `<span class="contact-pill">📍 ${d.address}</span>`
+      : '';
+
+    const noteHtml = d.note
+      ? `<div class="director-note">ℹ ${d.note}</div>`
+      : '';
+
+    const card = document.createElement('div');
+    card.className = 'director-card';
+    card.innerHTML = `
+      <div class="director-avatar">${initials}</div>
+      <div class="director-info">
+        <div class="director-name">${d.name || 'Unknown Director'}${statusHtml}</div>
+        <div class="director-din">DIN: ${d.din || 'N/A'}</div>
+        <div class="director-contacts">
+          ${emailHtml}
+          ${phoneHtml}
+          ${addrHtml}
+        </div>
+        ${noteHtml}
+      </div>
+    `;
+    return card;
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('lookup-btn');
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = '⚠ ' + msg;
+    box.classList.add('visible');
+  }
+
+  function clearError() {
+    document.getElementById('error-box').classList.remove('visible');
+  }
+
+  function hideResults() {
+    const r = document.getElementById('results');
+    r.classList.remove('visible');
+    r.style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

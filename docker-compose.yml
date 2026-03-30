@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build: ./backend
+    container_name: rc_backend
+    restart: unless-stopped
+    environment:
+      - IDFY_ACCOUNT_ID=${IDFY_ACCOUNT_ID}
+      - IDFY_API_KEY=${IDFY_API_KEY}
+    networks:
+      - rc_net
+
+  frontend:
+    build: ./frontend
+    container_name: rc_frontend
+    restart: unless-stopped
+    networks:
+      - rc_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: rc_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro          # place your SSL certs here
+      - certbot_www:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - rc_net
+
+networks:
+  rc_net:
+    driver: bridge
+
+volumes:
+  certbot_www:
